@@ -10,6 +10,9 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.util.Base64
+import java.io.IOException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @Service
 class NdidSummarySettlementReportFileService {
@@ -17,32 +20,36 @@ class NdidSummarySettlementReportFileService {
     @Autowired
     private lateinit var ndidSummarySettlementReportFileRepository : NdidSummarySettlementReportFileRepository
 
-    fun convertMultipartFileToFile(file : MultipartFile) : File{
+    private val logger: Logger = LoggerFactory.getLogger(NdidSummarySettlementReportFileService::class.java)
+
+    fun convertMultipartFileToFile(file: MultipartFile): File {
         val convertFile = File(file.originalFilename!!)
         file.transferTo(convertFile)
         return convertFile
     }
-    
-    fun insertNdidSummarySettlementReportFileService(ndidSummarySettlementReportFileRequest : NdidSummarySettlementReportFileRequest){
-        if(ndidSummarySettlementReportFileRequest.file.isEmpty){
-            println("File empty")
-            throw Exception()
+
+    fun insertNdidSummarySettlementReportFileService(ndidSummarySettlementReportFileRequest: NdidSummarySettlementReportFileRequest) {
+        if (ndidSummarySettlementReportFileRequest.file.isEmpty) {
+            logger.error("File is empty")
+            throw IllegalArgumentException("File is empty")
         }
-        var reader: BufferedReader? = null
+
+        val file = convertMultipartFileToFile(ndidSummarySettlementReportFileRequest.file)
+
         try {
-            reader = BufferedReader(FileReader( convertMultipartFileToFile(ndidSummarySettlementReportFileRequest.file)))
-            var line: String?
-
-            while (reader.readLine().also { line = it } != null) {
-                // Process each line
-                println(line)
+            BufferedReader(FileReader(file)).use { reader ->
+                var line: String?
+                while (reader.readLine().also { line = it } != null) {
+                    // Process each line
+                    logger.info(line)
+                }
             }
+        } catch (e: IOException) {
+            logger.error("Error reading file", e)
+            throw IOException("Error reading file", e)
+        } catch (e: Exception) {
+            logger.error("Unexpected error", e)
+            throw e
         }
-        catch (e : Exception){
-            println("Error !!!!!!!!")
-            throw Exception()
-        }
-
-
     }
 }
