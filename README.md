@@ -1,46 +1,21 @@
-package th.co.scb.ndid.admin.service
+@Test
+fun `when file is created then content is correct`() {
+    val workbook = XSSFWorkbook()
+    val workSheet = workbook.createSheet()
+    val cellStyle = workbook.createCellStyle()
+    cellStyle.fillForegroundColor = IndexedColors.RED.getIndex()
+    cellStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
+    val firstCell = workSheet
+        .createRow(0)
+        .createCell(0)
+    firstCell.setCellValue("SAVED VALUE")
+    firstCell.cellStyle = cellStyle
 
-import org.apache.poi.ss.usermodel.WorkbookFactory
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
-import org.springframework.web.multipart.MultipartFile
-import th.co.scb.ndid.admin.model.domain.request.NdidSummarySettlementReportFileRequest
-import th.co.scb.ndid.admin.repository.NdidSummarySettlementReportFileRepository
-import java.io.IOException
+    val tempFile = createTempFile("test_output_", ".xlsx")
+    workbook.write(tempFile.outputStream())
+    workbook.close()
 
-@Service
-class NdidSummarySettlementReportFileService {
-
-    @Autowired
-    private lateinit var ndidSummarySettlementReportFileRepository: NdidSummarySettlementReportFileRepository
-
-    private val logger: Logger = LoggerFactory.getLogger(NdidSummarySettlementReportFileService::class.java)
-
-    fun insertNdidSummarySettlementReportFileService(ndidSummarySettlementReportFileRequest: NdidSummarySettlementReportFileRequest) {
-        if (ndidSummarySettlementReportFileRequest.file.isEmpty) {
-            logger.error("File is empty")
-            throw IllegalArgumentException("File is empty")
-        }
-
-        try {
-            ndidSummarySettlementReportFileRequest.file.inputStream.use { inputStream ->
-                val workbook = WorkbookFactory.create(inputStream)
-                val sheet = workbook.getSheetAt(0)  // Assuming you want to read the first sheet
-
-                for (row in sheet) {
-                    val rowData = row.map { it.toString() }.joinToString(",")
-                    // Process each row
-                    logger.info(rowData)
-                }
-            }
-        } catch (e: IOException) {
-            logger.error("Error reading file", e)
-            throw IOException("Error reading file", e)
-        } catch (e: Exception) {
-            logger.error("Unexpected error", e)
-            throw e
-        }
-    }
+    val inputWorkbook = WorkbookFactory.create(tempFile.toFile().inputStream())
+    val firstSheet = inputWorkbook.getSheetAt(0)
+    assertThat(firstSheet.getRow(0).getCell(0).stringCellValue).isEqualTo("SAVED VALUE")
 }
