@@ -23,8 +23,8 @@ data class NdidSummarySettlementReport(
     val fileName: String
 )
 
-fun insertNdidSummarySettlementReportList(
-    reports: List<NdidSummarySettlementReport>
+fun insertNdidSummarySettlementReports(
+    reports: ArrayList<NdidSummarySettlementReport>
 ): List<Long> {
     val databaseSchema = databaseConfig.scbdidAdminSchema
     val tableName = "ndid_summary_settlement_report"
