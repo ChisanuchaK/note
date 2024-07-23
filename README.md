@@ -1,25 +1,48 @@
-package th.co.scb.ndid.admin.repository
-
-
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
-import org.springframework.stereotype.Repository
-import th.co.scb.ndid.admin.config.DatabaseConfig
-
-@Repository
-class NdidSummarySettlementReportRepositoryImp (
-    @Autowired private  val databaseConfig : DatabaseConfig
-
-) : NdidSummarySettlementReportFileRepository{
-    @Autowired
-    private lateinit var jdbcTemplate: NamedParameterJdbcTemplate
-    override fun deleteNdidSummarySettlementReportByYearMonthRepository(yearMonth: String) {
+fun insertNdidSummarySettlementReportRepository(
+        yearMonth: String,
+        nodeType: String,
+        transactionType: String,
+        nodeName: String,
+        nodeDescription: String,
+        totalTransactionRequest: BigDecimal,
+        totalBillingTransaction: BigDecimal,
+        totalStamp: Int,
+        totalFee: Int,
+        vatAmount: BigDecimal,
+        whtAmount: BigDecimal,
+        netAmount: BigDecimal,
+        createDateTime: LocalDateTime,
+        createBy: String,
+        fileName: String
+    ) {
         val databaseSchema = databaseConfig.scbdidAdminSchema
         val tableName = "ndid_summary_settlement_report"
-        val query = "  delete from $databaseSchema.$tableName where `year_month` = :yearMonth"
-        val parameterSource = MapSqlParameterSource()
-        parameterSource.addValue("yearMonth" , yearMonth)
-        jdbcTemplate.update(query , parameterSource)
+        try {
+            val query = """
+                    insert into $databaseSchema.$tableName ( `year_month` , node_type , transaction_type , node_name , node_description ,
+            total_transaction_request , total_billing_transaction , total_stamp , total_fee , vat_amount , wht_amount , net_amount , create_date_time ,
+            create_by , file_name) values(:yearMonth , :nodeType , :transactionType  , :nodeName , :nodeDescription , :totalTransactionRequest , :totalBillingTransaction ,:totalStamp ,
+             :totalFee , :vatAmount , :whtAmount , :netAmount , :createDateTime , :createBy , :fileName)
+        """.trimIndent()
+            val parameterSource = MapSqlParameterSource()
+            parameterSource.addValue("yearMonth", yearMonth)
+            parameterSource.addValue("nodeType", nodeType)
+            parameterSource.addValue("transactionType", transactionType)
+            parameterSource.addValue("nodeName", nodeName)
+            parameterSource.addValue("nodeDescription", nodeDescription)
+            parameterSource.addValue("totalTransactionRequest", totalTransactionRequest)
+            parameterSource.addValue("totalBillingTransaction", totalBillingTransaction)
+            parameterSource.addValue("totalStamp", totalStamp)
+            parameterSource.addValue("totalFee", totalFee)
+            parameterSource.addValue("vatAmount", vatAmount)
+            parameterSource.addValue("whtAmount", whtAmount)
+            parameterSource.addValue("netAmount", netAmount)
+            parameterSource.addValue("createDateTime", createDateTime)
+            parameterSource.addValue("createBy", createBy)
+            parameterSource.addValue("fileName", fileName)
+            jdbcTemplate.update(query, parameterSource)
+        } catch (e: Exception) {
+            logService.error(ErrorLogMessage(tableName, e))
+            throw DatabaseException(e.message)
+        }
     }
-}
