@@ -1,5 +1,7 @@
-
-import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.usermodel.HorizontalAlignment
+import org.apache.poi.ss.usermodel.VerticalAlignment
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
+import org.apache.poi.xssf.usermodel.XSSFFont
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.FileOutputStream
 
@@ -35,11 +37,13 @@ fun processExportReconcileSettlementReportExcelFile(yearMonthParam: String) {
         val header = "${year}/${month + 1} Payment (Record as of NDID Billing Document) ${year}/${month} cycle"
 
         // First row of sheet payTo and billTo
-        sheetPayTo.createRow(0).createCell(0).cellStyle = fontBold(workbook)
-        sheetPayTo.getRow(0).getCell(0).setCellValue(header)
+        val payToHeaderCell = sheetPayTo.createRow(0).createCell(0)
+        payToHeaderCell.cellStyle = fontBold(workbook)
+        payToHeaderCell.setCellValue(header)
         
-        sheetBillTo.createRow(0).createCell(0).cellStyle = fontBold(workbook)
-        sheetBillTo.getRow(0).getCell(0).setCellValue(header)
+        val billToHeaderCell = sheetBillTo.createRow(0).createCell(0)
+        billToHeaderCell.cellStyle = fontBold(workbook)
+        billToHeaderCell.setCellValue(header)
 
         val outputStream = FileOutputStream("./folderTestExcel/testExcel.xlsx")
         workbook.write(outputStream)
@@ -50,9 +54,9 @@ fun processExportReconcileSettlementReportExcelFile(yearMonthParam: String) {
     }
 }
 
-fun fontBold(workbook: Workbook): CellStyle {
-    val style = workbook.createCellStyle()
-    val font = workbook.createFont()
+fun fontBold(workbook: XSSFWorkbook): XSSFCellStyle {
+    val style = workbook.createCellStyle() as XSSFCellStyle
+    val font = workbook.createFont() as XSSFFont
     font.fontName = "Courier New"
     font.bold = true
     style.setFont(font)
